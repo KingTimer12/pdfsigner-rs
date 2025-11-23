@@ -198,7 +198,6 @@ impl PdfSigner {
     let catalog_marker = b"/Type /Catalog";
     let mut catalog_obj = 1; // Default fallback
     let mut pages_ref = 1; // Default fallback
-    //
 
     if let Some(catalog_start) = pdf_data
       .windows(catalog_marker.len())
