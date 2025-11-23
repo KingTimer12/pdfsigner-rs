@@ -1,6 +1,6 @@
 {
   "name": "pdfsigner-rs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Programa para assinar documentos PDF digitalmente utilizando certificados digitais no padrão ICP-Brasil.",
   "main": "index.js",
   "repository": {

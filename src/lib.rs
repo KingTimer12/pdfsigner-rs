@@ -28,7 +28,7 @@ pub struct Config {
 #[napi]
 pub fn sign_pdf(
   certificate: CertificateInfo,
-  pdf_data: Vec<u8>,
+  pdf_data: Buffer,
   config: Option<Config>,
 ) -> Result<Buffer> {
   let signer = PdfSigner::from_pfx_file(&certificate.pfx_path, &certificate.pfx_password)
@@ -48,7 +48,7 @@ pub fn sign_pdf(
   }
 
   let signed_buffer = signer
-    .sign_pdf(pdf_data, &signature_config)
+    .sign_pdf(pdf_data.into(), &signature_config)
     .map_err(|e| Error::from_reason(format!("Erro ao assinar PDF: {}", e)))?;
 
   Ok(Buffer::from(signed_buffer))

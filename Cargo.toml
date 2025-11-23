@@ -3,7 +3,7 @@
 authors = ["AaronKing <aaron.cmfor@gmail.com>"]
 edition = "2021"
 name = "pdfsigner_rs"
-version = "0.0.2"
+version = "0.0.3"
 
 [lib]
 crate-type = ["cdylib"]

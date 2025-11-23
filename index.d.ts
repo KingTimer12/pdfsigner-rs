@@ -11,6 +11,6 @@ export interface Config {
   contactInfo?: string
 }
 
-export declare function signPdf(certificate: CertificateInfo, pdfData: Array<number>, config?: Config | undefined | null): Buffer
+export declare function signPdf(certificate: CertificateInfo, pdfData: Buffer, config?: Config | undefined | null): Buffer
 
 export declare function signPdfWithPath(certificate: CertificateInfo, pdfPath: string, config?: Config | undefined | null): Buffer
