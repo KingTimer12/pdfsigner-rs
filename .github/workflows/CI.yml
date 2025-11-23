@@ -241,8 +241,17 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: '-v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}'
           run: |
+            set -e
+            echo "=== Files in workspace ==="
+            ls -lah
+            echo "=== Looking for .node files ==="
+            find . -name "*.node" -type f || echo "No .node files found"
+            echo "=== Installing dependencies ==="
             corepack enable
             yarn install
+            echo "=== After install - looking for .node files ==="
+            find . -name "*.node" -type f || echo "No .node files found"
+            echo "=== Running tests ==="
             yarn test
   publish:
     name: Publish
