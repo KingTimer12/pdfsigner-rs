@@ -33,8 +33,8 @@ cms = "0.2"
 const-oid = "0.9"
 der = { version = "0.7", features = ["alloc", "derive"] }
 x509-cert = "0.2"
-openssl-sys = "0.9"
-openssl = "0.10"
+openssl-sys = { version = "0.9", features = ["vendored"] }
+openssl = { version = "0.10", features = ["vendored"] }
 
 [build-dependencies]
 napi-build = "2"

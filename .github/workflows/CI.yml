@@ -73,23 +73,10 @@ jobs:
         with:
           perl-version: '5.32'
           distribution: strawberry
-      - name: Install OpenSSL on Windows
-        if: runner.os == 'Windows'
+      - name: Install Perl modules
         run: |
-          choco install openssl -y
-          echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >> $env:GITHUB_ENV
-          echo "OPENSSL_LIB_DIR=C:\Program Files\OpenSSL-Win64\lib" >> $env:GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=C:\Program Files\OpenSSL-Win64\include" >> $env:GITHUB_ENV
-      - name: Install OpenSSL on macOS
-        if: runner.os == 'macOS'
-        run: |
-          brew install openssl@3
-          echo "OPENSSL_DIR=$(brew --prefix openssl@3)" >> $GITHUB_ENV
-      - name: Install OpenSSL on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libssl-dev pkg-config
+          cpanm --notest IPC::Cmd
+        shell: bash
       - name: Install
         uses: dtolnay/rust-toolchain@stable
         with:
