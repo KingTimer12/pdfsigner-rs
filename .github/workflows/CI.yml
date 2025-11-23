@@ -225,8 +225,12 @@ jobs:
           path: .
       - name: List packages
         run: |
+          echo "=== Files in current directory ==="
           ls -lah
+          echo "=== Looking for .node files ==="
           find . -name "*.node" -type f
+          echo "=== Content of downloaded files ==="
+          file *.node 2>/dev/null || echo "No .node files in root"
         shell: bash
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
