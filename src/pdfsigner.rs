@@ -517,11 +517,7 @@ impl PdfSigner {
   }
 
   /// Assina um PDF com configuração completa
-  pub fn sign_pdf(
-    &self,
-    pdf_data: Vec<u8>,
-    config: &SignatureConfig,
-  ) -> Result<Vec<u8>> {
+  pub fn sign_pdf(&self, pdf_data: Vec<u8>, config: &SignatureConfig) -> Result<Vec<u8>> {
     self.sign_pdf_bytes(pdf_data, config)
   }
 
