@@ -69,6 +69,10 @@ jobs:
         with:
           node-version: 24
           cache: yarn
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: "5.32"
+          distribution: strawberry
       - name: Install
         uses: dtolnay/rust-toolchain@stable
         with:
