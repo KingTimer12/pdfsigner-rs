@@ -69,12 +69,22 @@ jobs:
         with:
           node-version: 24
           cache: yarn
-      - uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: '5.32'
-          distribution: strawberry
-      - name: Install Perl modules
+      - name: Install OpenSSL via vcpkg on Windows
+        if: runner.os == 'Windows'
         run: |
+          vcpkg install openssl:x64-windows-static
+          echo "OPENSSL_DIR=C:/vcpkg/installed/x64-windows-static" >> $GITHUB_ENV
+          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+          echo "OPENSSL_NO_VENDOR=1" >> $GITHUB_ENV
+        shell: bash
+      - uses: shogo82148/actions-setup-perl@v1
+        if: runner.os != 'Windows'
+        with:
+          perl-version: '5.38'
+      - name: Install Perl modules on Unix
+        if: runner.os != 'Windows'
+        run: |
+          cpanm --notest Locale::Maketext::Simple
           cpanm --notest IPC::Cmd
         shell: bash
       - name: Install
