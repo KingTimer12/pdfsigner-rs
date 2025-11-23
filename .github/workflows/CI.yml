@@ -168,7 +168,9 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: .
       - name: List packages
-        run: ls -R .
+        run: |
+          ls -lah
+          find . -name "*.node" -type f
         shell: bash
       - name: Test bindings
         run: yarn test
@@ -222,7 +224,9 @@ jobs:
           name: bindings-${{ matrix.target }}
           path: .
       - name: List packages
-        run: ls -R .
+        run: |
+          ls -lah
+          find . -name "*.node" -type f
         shell: bash
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
