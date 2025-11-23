@@ -24,6 +24,7 @@ pub struct Config {
   pub contact_info: Option<String>,
 }
 
+// Função para assinar PDF
 #[napi]
 pub fn sign_pdf(
   certificate: CertificateInfo,
