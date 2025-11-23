@@ -558,3 +558,4 @@ if (!nativeBinding) {
 
 module.exports = nativeBinding
 module.exports.signPdf = nativeBinding.signPdf
+module.exports.signPdfWithPath = nativeBinding.signPdfWithPath

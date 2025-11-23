@@ -517,13 +517,22 @@ impl PdfSigner {
   }
 
   /// Assina um PDF com configuração completa
-  pub fn sign_pdf<P: AsRef<Path>>(
+  pub fn sign_pdf(
+    &self,
+    pdf_data: Vec<u8>,
+    config: &SignatureConfig,
+  ) -> Result<Vec<u8>> {
+    self.sign_pdf_bytes(pdf_data, config)
+  }
+
+  /// Assina um PDF com configuração completa
+  pub fn sign_pdf_with_path<P: AsRef<Path>>(
     &self,
     input_path: P,
     config: &SignatureConfig,
   ) -> Result<Vec<u8>> {
     let pdf_data = fs::read(input_path)?;
-    self.sign_pdf_bytes(pdf_data, config)
+    self.sign_pdf(pdf_data, config)
   }
 
   /// Cria estrutura PKCS#7/CMS detached usando OpenSSL

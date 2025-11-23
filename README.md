@@ -1,87 +1,170 @@
-# `@napi-rs/package-template`
+# pdfsigner-rs
 
-![https://github.com/napi-rs/package-template/actions](https://github.com/napi-rs/package-template/workflows/CI/badge.svg)
+[![CI](https://github.com/KingTimer12/pdfsigner-rs/workflows/CI/badge.svg)](https://github.com/KingTimer12/pdfsigner-rs/actions)
+[![npm version](https://img.shields.io/npm/v/pdfsigner-rs.svg)](https://www.npmjs.com/package/pdfsigner-rs)
 
-> Template project for writing node packages with napi-rs.
+Biblioteca de alto desempenho para assinatura digital de documentos PDF usando certificados digitais no padrão ICP-Brasil, escrita em Rust com bindings para Node.js via NAPI-RS.
 
-# Usage
+## 🚀 Características
 
-1. Click **Use this template**.
-2. **Clone** your project.
-3. Run `yarn install` to install dependencies.
-4. Run `yarn napi rename -n [@your-scope/package-name] -b [binary-name]` command under the project folder to rename your package.
+- ✅ **Alta Performance**: Implementado em Rust para máxima velocidade
+- ✅ **Compatível com ICP-Brasil**: Suporta certificados A1 (PFX/P12)
+- ✅ **Padrão PAdES**: Assinaturas compatíveis com Adobe Reader
+- ✅ **Zero Dependências Nativas**: Binários pré-compilados para todas as plataformas
+- ✅ **TypeScript**: Tipagem completa incluída
+- ✅ **Cross-Platform**: Windows, macOS e Linux
 
-## Install this test package
-
-```bash
-yarn add @napi-rs/package-template
-```
-
-## Ability
-
-### Build
-
-After `yarn build/npm run build` command, you can see `package-template.[darwin|win32|linux].node` file in project root. This is the native addon built from [lib.rs](./src/lib.rs).
-
-### Test
-
-With [ava](https://github.com/avajs/ava), run `yarn test/npm run test` to testing native addon. You can also switch to another testing framework if you want.
-
-### CI
-
-With GitHub Actions, each commit and pull request will be built and tested automatically in [`node@20`, `@node22`] x [`macOS`, `Linux`, `Windows`] matrix. You will never be afraid of the native addon broken in these platforms.
-
-### Release
-
-Release native package is very difficult in old days. Native packages may ask developers who use it to install `build toolchain` like `gcc/llvm`, `node-gyp` or something more.
-
-With `GitHub actions`, we can easily prebuild a `binary` for major platforms. And with `N-API`, we should never be afraid of **ABI Compatible**.
-
-The other problem is how to deliver prebuild `binary` to users. Downloading it in `postinstall` script is a common way that most packages do it right now. The problem with this solution is it introduced many other packages to download binary that has not been used by `runtime codes`. The other problem is some users may not easily download the binary from `GitHub/CDN` if they are behind a private network (But in most cases, they have a private NPM mirror).
-
-In this package, we choose a better way to solve this problem. We release different `npm packages` for different platforms. And add it to `optionalDependencies` before releasing the `Major` package to npm.
-
-`NPM` will choose which native package should download from `registry` automatically. You can see [npm](./npm) dir for details. And you can also run `yarn add @napi-rs/package-template` to see how it works.
-
-## Develop requirements
-
-- Install the latest `Rust`
-- Install `Node.js@10+` which fully supported `Node-API`
-- Install `yarn@1.x`
-
-## Test in local
-
-- yarn
-- yarn build
-- yarn test
-
-And you will see:
+## 📦 Instalação
 
 ```bash
-$ ava --verbose
-
-  ✔ sync function from native code
-  ✔ sleep function from native code (201ms)
-  ─
-
-  2 tests passed
-✨  Done in 1.12s.
+npm install pdfsigner-rs
+# ou
+yarn add pdfsigner-rs
+# ou
+pnpm add pdfsigner-rs
 ```
 
-## Release package
+## 🔧 Uso
 
-Ensure you have set your **NPM_TOKEN** in the `GitHub` project setting.
+### Assinando um PDF a partir de um arquivo
 
-In `Settings -> Secrets`, add **NPM_TOKEN** into it.
+```javascript
+const { signPdfBuffer } = require('pdfsigner-rs');
+const fs = require('fs');
 
-When you want to release the package:
+// Assinar PDF e retornar buffer
+const signedBuffer = signPdfBuffer(
+  './certificado.pfx',           // Caminho para o certificado PFX
+  'senha_do_certificado',         // Senha do certificado
+  './documento.pdf',              // Caminho para o PDF a ser assinado
+  'Assinatura digital',           // Motivo (opcional)
+  'Brasil',                       // Localização (opcional)
+  'contato@exemplo.com'          // Informações de contato (opcional)
+);
+
+// Salvar o PDF assinado
+fs.writeFileSync('./documento_assinado.pdf', signedBuffer);
+console.log('✓ PDF assinado com sucesso!');
+```
+
+### Assinando um PDF a partir de bytes (Buffer)
+
+```javascript
+const { signPdfFromBytes } = require('pdfsigner-rs');
+const fs = require('fs');
+
+// Ler o PDF como buffer
+const pdfBuffer = fs.readFileSync('./documento.pdf');
+
+// Assinar o buffer
+const signedBuffer = signPdfFromBytes(
+  './certificado.pfx',
+  'senha_do_certificado',
+  pdfBuffer,
+  'Assinatura digital',
+  'Brasil',
+  'contato@exemplo.com'
+);
+
+// Salvar ou usar o buffer diretamente
+fs.writeFileSync('./documento_assinado.pdf', signedBuffer);
+```
+
+### TypeScript
+
+```typescript
+import { signPdfBuffer, signPdfFromBytes } from 'pdfsigner-rs';
+
+const signedBuffer: Buffer = signPdfBuffer(
+  './certificado.pfx',
+  'senha',
+  './documento.pdf'
+);
+```
+
+## 📝 API
+
+### `signPdfBuffer(pfxPath, password, pdfPath, reason?, location?, contactInfo?): Buffer`
+
+Assina um PDF a partir de um arquivo e retorna o buffer assinado.
+
+**Parâmetros:**
+- `pfxPath` (string): Caminho para o arquivo PFX/P12
+- `password` (string): Senha do certificado
+- `pdfPath` (string): Caminho para o PDF a ser assinado
+- `reason` (string, opcional): Motivo da assinatura (padrão: "Assinatura digital conforme ICP-Brasil")
+- `location` (string, opcional): Localização (padrão: "Brasil")
+- `contactInfo` (string, opcional): Informações de contato (padrão: "")
+
+**Retorna:** `Buffer` - Buffer do PDF assinado
+
+### `signPdfFromBytes(pfxPath, password, pdfBytes, reason?, location?, contactInfo?): Buffer`
+
+Assina um PDF a partir de bytes e retorna o buffer assinado.
+
+**Parâmetros:**
+- `pfxPath` (string): Caminho para o arquivo PFX/P12
+- `password` (string): Senha do certificado
+- `pdfBytes` (Buffer): Buffer contendo o PDF
+- `reason` (string, opcional): Motivo da assinatura
+- `location` (string, opcional): Localização
+- `contactInfo` (string, opcional): Informações de contato
+
+**Retorna:** `Buffer` - Buffer do PDF assinado
+
+## 🏗️ Plataformas Suportadas
+
+| Plataforma | Arquitetura | Status |
+|------------|-------------|--------|
+| Windows | x64 | ✅ |
+| macOS | x64 | ✅ |
+| macOS | ARM64 (Apple Silicon) | ✅ |
+| Linux | x64 (glibc) | ✅ |
+
+## 🔐 Segurança
+
+- Suporta certificados digitais ICP-Brasil (A1)
+- Implementa assinatura PAdES (PDF Advanced Electronic Signatures)
+- Compatível com Adobe Reader e validadores ICP-Brasil
+- OpenSSL para operações criptográficas
+
+## 🛠️ Desenvolvimento
+
+### Requisitos
+
+- Rust (última versão estável)
+- Node.js 16+
+- Yarn 1.x ou superior
+
+### Build Local
 
 ```bash
-npm version [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease [--preid=<prerelease-id>] | from-git]
+# Instalar dependências
+yarn install
 
-git push
+# Build do projeto
+yarn build
+
+# Executar testes
+yarn test
+
+# Lint
+yarn lint
 ```
 
-GitHub actions will do the rest job for you.
+## 📄 Licença
 
-> WARN: Don't run `npm publish` manually.
+MIT
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
+
+## 👤 Autor
+
+**AaronKing** - [@KingTimer12](https://github.com/KingTimer12)
+
+## 🙏 Agradecimentos
+
+- Baseado em [NAPI-RS](https://napi.rs/) para bindings Rust ↔ Node.js
+- Inspirado em [node-signpdf](https://github.com/vbuch/node-signpdf)

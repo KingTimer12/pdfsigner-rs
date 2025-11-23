@@ -28,6 +28,36 @@ pub struct Config {
 #[napi]
 pub fn sign_pdf(
   certificate: CertificateInfo,
+  pdf_data: Vec<u8>,
+  config: Option<Config>,
+) -> Result<Buffer> {
+  let signer = PdfSigner::from_pfx_file(&certificate.pfx_path, &certificate.pfx_password)
+    .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?;
+
+  let mut signature_config = SignatureConfig::default();
+  if let Some(cfg) = config {
+    if let Some(reason) = cfg.reason {
+      signature_config.reason = reason;
+    }
+    if let Some(location) = cfg.location {
+      signature_config.location = location;
+    }
+    if let Some(contact_info) = cfg.contact_info {
+      signature_config.contact_info = contact_info;
+    }
+  }
+
+  let signed_buffer = signer
+    .sign_pdf(pdf_data, &signature_config)
+    .map_err(|e| Error::from_reason(format!("Erro ao assinar PDF: {}", e)))?;
+
+  Ok(Buffer::from(signed_buffer))
+}
+
+// Função para assinar PDF
+#[napi]
+pub fn sign_pdf_with_path(
+  certificate: CertificateInfo,
   pdf_path: String,
   config: Option<Config>,
 ) -> Result<Buffer> {
@@ -48,7 +78,7 @@ pub fn sign_pdf(
   }
 
   let signed_buffer = signer
-    .sign_pdf(&pdf_path, &signature_config)
+    .sign_pdf_with_path(&pdf_path, &signature_config)
     .map_err(|e| Error::from_reason(format!("Erro ao assinar PDF: {}", e)))?;
 
   Ok(Buffer::from(signed_buffer))
