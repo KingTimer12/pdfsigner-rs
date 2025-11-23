@@ -123,6 +123,8 @@ jobs:
       - name: Build
         run: ${{ matrix.settings.build }}
         shell: bash
+        env:
+          NAPI_RS_DOCKER_IMAGE: ${{ matrix.settings.docker }}
       - name: Upload artifact
         uses: actions/upload-artifact@v5
         with:
