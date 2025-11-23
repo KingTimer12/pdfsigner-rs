@@ -54,9 +54,10 @@ jobs:
           - host: windows-latest
             build: yarn build --target x86_64-pc-windows-msvc
             target: x86_64-pc-windows-msvc
-          - host: ubuntu-20.04
+          - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            build: yarn build --target x86_64-unknown-linux-gnu
+            build: yarn build --target x86_64-unknown-linux-gnu --use-napi-cross
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
           - host: macos-latest
             target: aarch64-apple-darwin
             build: yarn build --target aarch64-apple-darwin
@@ -76,16 +77,6 @@ jobs:
           echo "OPENSSL_DIR=C:/vcpkg/installed/x64-windows-static" >> $GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $GITHUB_ENV
-        shell: bash
-      - uses: shogo82148/actions-setup-perl@v1
-        if: runner.os != 'Windows'
-        with:
-          perl-version: '5.38'
-      - name: Install Perl modules on Unix
-        if: runner.os != 'Windows'
-        run: |
-          cpanm --notest Locale::Maketext::Simple
-          cpanm --notest IPC::Cmd
         shell: bash
       - name: Install
         uses: dtolnay/rust-toolchain@stable
