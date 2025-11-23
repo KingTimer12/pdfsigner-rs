@@ -20,7 +20,9 @@ impl Certificate {
 
     Ok(Self {
       der_bytes: der,
-      parsed: unsafe { std::mem::transmute(parsed_static) },
+      parsed: unsafe {
+        std::mem::transmute::<X509Certificate<'_>, X509Certificate<'_>>(parsed_static)
+      },
     })
   }
 

@@ -204,11 +204,7 @@ impl PdfSigner {
       .position(|w| w == catalog_marker)
     {
       // Procura para trás para encontrar o "N 0 obj" antes do /Type /Catalog
-      let search_start = if catalog_start > 100 {
-        catalog_start - 100
-      } else {
-        0
-      };
+      let search_start = catalog_start.saturating_sub(100);
       let obj_pattern = b" 0 obj";
 
       if let Some(obj_pos) = pdf_data[search_start..catalog_start]
@@ -244,7 +240,7 @@ impl PdfSigner {
       if let Some(pages_match) = std::str::from_utf8(catalog_section).ok().and_then(|s| {
         s.split("/Pages")
           .nth(1)
-          .and_then(|rest| rest.trim().split_whitespace().next())
+          .and_then(|rest| rest.split_whitespace().next())
       }) {
         if let Ok(num) = pages_match.parse::<usize>() {
           pages_ref = num;
@@ -260,11 +256,7 @@ impl PdfSigner {
       .windows(page_marker.len())
       .position(|w| w == page_marker)
     {
-      let search_start = if page_start > 100 {
-        page_start - 100
-      } else {
-        0
-      };
+      let search_start = page_start.saturating_sub(100);
       let obj_pattern = b" 0 obj";
 
       if let Some(obj_pos) = pdf_data[search_start..page_start]

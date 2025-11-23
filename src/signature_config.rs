@@ -22,6 +22,7 @@ pub struct SignatureConfig {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(dead_code)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum PadesLevel {
   /// PAdES-B-B: Assinatura básica
   BB,
