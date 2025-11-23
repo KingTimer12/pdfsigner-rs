@@ -255,6 +255,8 @@ jobs:
             yarn install
             echo "=== After install - looking for .node files ==="
             find . -name "*.node" -type f || echo "No .node files found"
+            echo "=== Testing if .node file can be loaded ==="
+            node -e "try { console.log('Loading:', require.resolve('./pdfsigner-rs.linux-x64-gnu.node')); const mod = require('./pdfsigner-rs.linux-x64-gnu.node'); console.log('Success!', Object.keys(mod)); } catch(e) { console.error('Error loading .node:', e.message); process.exit(1); }"
             echo "=== Running tests ==="
             yarn test
   publish:
