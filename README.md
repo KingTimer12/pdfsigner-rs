@@ -29,97 +29,107 @@ pnpm add pdfsigner-rs
 ### Assinando um PDF a partir de um arquivo
 
 ```javascript
-const { signPdfBuffer } = require('pdfsigner-rs');
-const fs = require('fs');
+const { signPdfWithPath } = require('pdfsigner-rs')
+const fs = require('fs')
 
 // Assinar PDF e retornar buffer
-const signedBuffer = signPdfBuffer(
-  './certificado.pfx',           // Caminho para o certificado PFX
-  'senha_do_certificado',         // Senha do certificado
-  './documento.pdf',              // Caminho para o PDF a ser assinado
-  'Assinatura digital',           // Motivo (opcional)
-  'Brasil',                       // Localização (opcional)
-  'contato@exemplo.com'          // Informações de contato (opcional)
-);
+// Nesse método usamos o caminho do documento ao invés de ser buffer.
+const signedBuffer = signPdfWithPath(
+  {
+    pfxPath: path.join(__dirname, 'certificado.pfx'),
+    pfxPassword: 'senha',
+  },
+  path.join(__dirname, 'pdf_sample_2.pdf'),
+  {
+    reason: 'I approve this document',
+    location: 'New York, USA',
+  },
+)
 
 // Salvar o PDF assinado
-fs.writeFileSync('./documento_assinado.pdf', signedBuffer);
-console.log('✓ PDF assinado com sucesso!');
+fs.writeFileSync('./documento_assinado.pdf', signedBuffer)
+console.log('✓ PDF assinado com sucesso!')
 ```
 
 ### Assinando um PDF a partir de bytes (Buffer)
 
 ```javascript
-const { signPdfFromBytes } = require('pdfsigner-rs');
-const fs = require('fs');
+const { signPdf } = require('pdfsigner-rs')
+const fs = require('fs')
 
 // Ler o PDF como buffer
-const pdfBuffer = fs.readFileSync('./documento.pdf');
+const pdfBuffer = fs.readFileSync('./documento.pdf')
 
 // Assinar o buffer
-const signedBuffer = signPdfFromBytes(
-  './certificado.pfx',
-  'senha_do_certificado',
+// Nesse método usamos o buffer do documento.
+const signedBuffer = signPdf(
+  {
+    pfxPath: path.join(__dirname, 'certificado.pfx'),
+    pfxPassword: 'senha',
+  },
   pdfBuffer,
-  'Assinatura digital',
-  'Brasil',
-  'contato@exemplo.com'
-);
+  {
+    reason: 'I approve this document',
+    location: 'New York, USA',
+  },
+)
 
 // Salvar ou usar o buffer diretamente
-fs.writeFileSync('./documento_assinado.pdf', signedBuffer);
+fs.writeFileSync('./documento_assinado.pdf', signedBuffer)
 ```
 
 ### TypeScript
 
 ```typescript
-import { signPdfBuffer, signPdfFromBytes } from 'pdfsigner-rs';
+import { signPdf } from 'pdfsigner-rs'
 
-const signedBuffer: Buffer = signPdfBuffer(
-  './certificado.pfx',
-  'senha',
-  './documento.pdf'
-);
+const signedBuffer: Buffer = signPdf(
+  {
+    pfxPath: path.join(__dirname, 'certificado.pfx'),
+    pfxPassword: 'senha',
+  },
+  pdfBuffer,
+  {
+    reason: 'I approve this document',
+    location: 'New York, USA',
+  },
+)
 ```
 
 ## 📝 API
 
-### `signPdfBuffer(pfxPath, password, pdfPath, reason?, location?, contactInfo?): Buffer`
-
-Assina um PDF a partir de um arquivo e retorna o buffer assinado.
-
-**Parâmetros:**
-- `pfxPath` (string): Caminho para o arquivo PFX/P12
-- `password` (string): Senha do certificado
-- `pdfPath` (string): Caminho para o PDF a ser assinado
-- `reason` (string, opcional): Motivo da assinatura (padrão: "Assinatura digital conforme ICP-Brasil")
-- `location` (string, opcional): Localização (padrão: "Brasil")
-- `contactInfo` (string, opcional): Informações de contato (padrão: "")
-
-**Retorna:** `Buffer` - Buffer do PDF assinado
-
-### `signPdfFromBytes(pfxPath, password, pdfBytes, reason?, location?, contactInfo?): Buffer`
+### `signPdf(certificate: CertificateInfo, pdfData: Buffer, config?: Config | undefined | null): Buffer`
 
 Assina um PDF a partir de bytes e retorna o buffer assinado.
 
 **Parâmetros:**
-- `pfxPath` (string): Caminho para o arquivo PFX/P12
-- `password` (string): Senha do certificado
-- `pdfBytes` (Buffer): Buffer contendo o PDF
-- `reason` (string, opcional): Motivo da assinatura
-- `location` (string, opcional): Localização
-- `contactInfo` (string, opcional): Informações de contato
+
+- `certificate` (CertificateInfo): Informações do certificado
+- `pdfData` (Buffer): Buffer contendo o PDF
+- `config` (Config | undefined | null, opcional): Configurações adicionais
+
+**Retorna:** `Buffer` - Buffer do PDF assinado
+
+### `signPdfWithPath(certificate: CertificateInfo, pdfPath: string, config?: Config | undefined | null): Buffer`
+
+Assina um PDF a partir de um caminho de arquivo e retorna o buffer assinado.
+
+**Parâmetros:**
+
+- `certificate` (CertificateInfo): Informações do certificado
+- `pdfPath` (string): Caminho para o arquivo PDF
+- `config` (Config | undefined | null, opcional): Configurações adicionais
 
 **Retorna:** `Buffer` - Buffer do PDF assinado
 
 ## 🏗️ Plataformas Suportadas
 
-| Plataforma | Arquitetura | Status |
-|------------|-------------|--------|
-| Windows | x64 | ✅ |
-| macOS | x64 | ✅ |
-| macOS | ARM64 (Apple Silicon) | ✅ |
-| Linux | x64 (glibc) | ✅ |
+| Plataforma | Arquitetura           | Status |
+| ---------- | --------------------- | ------ |
+| Windows    | x64                   | ✅     |
+| macOS      | x64                   | ✅     |
+| macOS      | ARM64 (Apple Silicon) | ✅     |
+| Linux      | x64 (glibc)           | ✅     |
 
 ## 🔐 Segurança
 
