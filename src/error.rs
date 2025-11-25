@@ -29,6 +29,15 @@ pub enum PdfSignError {
 
   #[error("Erro RSA: {0}")]
   RsaError(String),
+
+  #[error("Erro AWS S3: {0}")]
+  AwsS3Error(String),
 }
 
 pub type Result<T> = std::result::Result<T, PdfSignError>;
+
+impl From<PdfSignError> for napi::Error {
+  fn from(err: PdfSignError) -> Self {
+    napi::Error::new(napi::Status::GenericFailure, err.to_string())
+  }
+}

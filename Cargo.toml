@@ -9,7 +9,7 @@ version = "0.0.3"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = "3.0.0"
+napi = { version = "3", features = ["async"] }
 napi-derive = "3.0.0"
 rsa = { version = "0.9", features = ["sha2"] }
 sha2 = "0.10"
@@ -35,6 +35,9 @@ der = { version = "0.7", features = ["alloc", "derive"] }
 x509-cert = "0.2"
 openssl-sys = { version = "0.9", features = ["vendored"] }
 openssl = { version = "0.10", features = ["vendored"] }
+tokio = { version = "1", features = ["fs"] }
+aws-sdk-s3 = "1.115.0"
+aws-config = "1.8.11"
 
 
 [build-dependencies]

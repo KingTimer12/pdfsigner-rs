@@ -9,12 +9,12 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 test('sync function from native code', (t) => {
-  const pdfBuffer = signPdfWithPath({
+  const pdfSigned = signPdfWithPath({
     pfxPath: path.join(__dirname, 'certificado-a1.pfx'),
     pfxPassword: '123456'
   }, path.join(__dirname, 'pdf_sample_2.pdf'), {
     reason: 'I approve this document',
     location: 'New York, USA',
   })
-  t.true(Buffer.isBuffer(pdfBuffer))
+  t.true(Buffer.isBuffer(pdfSigned.toBuffer()))
 })
