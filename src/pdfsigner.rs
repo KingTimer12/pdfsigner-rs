@@ -8,7 +8,9 @@ use std::path::Path;
 use crate::certificate::Certificate;
 use crate::error::{PdfSignError, Result};
 use crate::signature_config::SignatureConfig;
-use crate::utils::{get_next_object_number, remove_trailing_newline};
+use crate::utils::{
+  extract_catalog_info, extract_first_page_info, get_next_object_number, remove_trailing_newline,
+};
 
 /// Estrutura principal para assinatura de PDFs
 pub struct PdfSigner {
@@ -194,88 +196,13 @@ impl PdfSigner {
 
     let mut output = Vec::new();
 
-    // Encontra o Catalog original e a primeira página (sem modificar!)
-    let catalog_marker = b"/Type /Catalog";
-    let mut catalog_obj = 1; // Default fallback
-    let mut pages_ref = 1; // Default fallback
+    // Extrai informações do PDF de forma robusta (funciona com PDFs reconstruídos)
+    let catalog_info = extract_catalog_info(&pdf_data)?;
+    let page_info = extract_first_page_info(&pdf_data)?;
 
-    if let Some(catalog_start) = pdf_data
-      .windows(catalog_marker.len())
-      .position(|w| w == catalog_marker)
-    {
-      // Procura para trás para encontrar o "N 0 obj" antes do /Type /Catalog
-      let search_start = catalog_start.saturating_sub(100);
-      let obj_pattern = b" 0 obj";
-
-      if let Some(obj_pos) = pdf_data[search_start..catalog_start]
-        .windows(obj_pattern.len())
-        .rposition(|w| w == obj_pattern)
-      {
-        let actual_pos = search_start + obj_pos;
-        let mut num_start = actual_pos;
-        while num_start > 0 && pdf_data[num_start - 1] >= b'0' && pdf_data[num_start - 1] <= b'9' {
-          num_start -= 1;
-        }
-
-        if let Ok(obj_str) = std::str::from_utf8(&pdf_data[num_start..actual_pos]) {
-          if let Ok(obj_num) = obj_str.trim().parse::<usize>() {
-            catalog_obj = obj_num;
-          }
-        }
-      }
-
-      // Extrai a referência /Pages do Catalog original
-      let catalog_section_end = if let Some(endobj_pos) = pdf_data[catalog_start..]
-        .windows(b"\nendobj".len())
-        .position(|w| w == b"\nendobj")
-      {
-        catalog_start + endobj_pos
-      } else {
-        catalog_start + 200
-      };
-
-      let catalog_section = &pdf_data[catalog_start..catalog_section_end];
-
-      // Busca /Pages N 0 R
-      if let Some(pages_match) = std::str::from_utf8(catalog_section).ok().and_then(|s| {
-        s.split("/Pages")
-          .nth(1)
-          .and_then(|rest| rest.split_whitespace().next())
-      }) {
-        if let Ok(num) = pages_match.parse::<usize>() {
-          pages_ref = num;
-        }
-      }
-    }
-
-    // Encontra a primeira página (sem modificar!)
-    let page_marker = b"/Type /Page";
-    let mut first_page_obj = 1; // Default fallback
-
-    if let Some(page_start) = pdf_data
-      .windows(page_marker.len())
-      .position(|w| w == page_marker)
-    {
-      let search_start = page_start.saturating_sub(100);
-      let obj_pattern = b" 0 obj";
-
-      if let Some(obj_pos) = pdf_data[search_start..page_start]
-        .windows(obj_pattern.len())
-        .rposition(|w| w == obj_pattern)
-      {
-        let actual_pos = search_start + obj_pos;
-        let mut num_start = actual_pos;
-        while num_start > 0 && pdf_data[num_start - 1] >= b'0' && pdf_data[num_start - 1] <= b'9' {
-          num_start -= 1;
-        }
-
-        if let Ok(obj_str) = std::str::from_utf8(&pdf_data[num_start..actual_pos]) {
-          if let Ok(obj_num) = obj_str.trim().parse::<usize>() {
-            first_page_obj = obj_num;
-          }
-        }
-      }
-    }
+    let catalog_obj = catalog_info.catalog_obj;
+    let pages_ref = catalog_info.pages_ref;
+    let first_page_obj = page_info.first_page_obj;
 
     // Copia o PDF original INTEIRO sem modificações
     output.extend_from_slice(&pdf_data);
@@ -319,12 +246,12 @@ impl PdfSigner {
     // CRÍTICO: Adiciona um NOVO Catalog que substitui o original na atualização incremental
     // Isso é o que o JavaScript faz! Não modifica o Catalog original, cria um novo!
     let new_catalog_pos = output.len();
-    let new_catalog = format!(
-      "{} 0 obj\n<<\n/Type /Catalog\n/Pages {} 0 R\n/AcroForm {} 0 R\n>>\nendobj\n",
-      catalog_obj,
-      pages_ref,
-      next_obj + 1
-    );
+
+    // IMPORTANTE: Preserva estruturas adicionais do Catalog original se existirem
+    // PDFs reconstruídos podem ter campos personalizados que precisam ser mantidos
+    let new_catalog =
+      build_updated_catalog(catalog_obj, pages_ref, (next_obj + 1) as usize, &pdf_data)?;
+
     output.extend_from_slice(new_catalog.as_bytes());
 
     // Encontra o startxref anterior
@@ -624,4 +551,75 @@ pub struct CertificateInfo {
   pub valid_from: String,
   pub valid_until: String,
   pub serial_number: Option<String>,
+}
+
+/// Constrói um novo Catalog preservando campos extras do original
+/// Isso é crítico para PDFs reconstruídos que podem ter metadados personalizados
+fn build_updated_catalog(
+  catalog_obj: usize,
+  pages_ref: usize,
+  acroform_ref: usize,
+  pdf_data: &[u8],
+) -> Result<String> {
+  // Busca o Catalog original
+  let catalog_pattern = format!("{} 0 obj", catalog_obj);
+
+  if let Some(catalog_start) = pdf_data
+    .windows(catalog_pattern.len())
+    .position(|w| w == catalog_pattern.as_bytes())
+  {
+    if let Some(catalog_end) = pdf_data[catalog_start..]
+      .windows(b"endobj".len())
+      .position(|w| w == b"endobj")
+    {
+      let catalog_section = &pdf_data[catalog_start..catalog_start + catalog_end];
+
+      // Extrai campos extras do Catalog (tudo exceto /Type, /Pages e /AcroForm)
+      let catalog_str = String::from_utf8_lossy(catalog_section);
+
+      // Procura o dicionário do catalog (entre << e >>)
+      if let Some(dict_start) = catalog_str.find("<<") {
+        if let Some(dict_end) = catalog_str.rfind(">>") {
+          let dict_content = &catalog_str[dict_start + 2..dict_end];
+
+          // Extrai campos extras (preserva tudo exceto /Type, /Pages, /AcroForm)
+          let mut extra_fields = Vec::new();
+          let lines: Vec<&str> = dict_content.lines().collect();
+
+          for line in lines {
+            let trimmed = line.trim();
+            // Ignora campos que vamos redefinir
+            if !trimmed.starts_with("/Type")
+              && !trimmed.starts_with("/Pages")
+              && !trimmed.starts_with("/AcroForm")
+              && !trimmed.is_empty()
+            {
+              extra_fields.push(trimmed);
+            }
+          }
+
+          // Constrói o novo Catalog com campos extras preservados
+          let mut new_catalog = format!(
+            "{} 0 obj\n<<\n/Type /Catalog\n/Pages {} 0 R\n/AcroForm {} 0 R\n",
+            catalog_obj, pages_ref, acroform_ref
+          );
+
+          // Adiciona campos extras
+          for field in extra_fields {
+            new_catalog.push_str(field);
+            new_catalog.push('\n');
+          }
+
+          new_catalog.push_str(">>\nendobj\n");
+          return Ok(new_catalog);
+        }
+      }
+    }
+  }
+
+  // Fallback: cria Catalog básico se não conseguir extrair o original
+  Ok(format!(
+    "{} 0 obj\n<<\n/Type /Catalog\n/Pages {} 0 R\n/AcroForm {} 0 R\n>>\nendobj\n",
+    catalog_obj, pages_ref, acroform_ref
+  ))
 }
