@@ -8,6 +8,8 @@ Biblioteca de alto desempenho para assinatura digital de documentos PDF usando c
 ## 🚀 Características
 
 - ✅ **Alta Performance**: Implementado em Rust para máxima velocidade
+- ✅ **Otimizado**: Binários com menos de 10MB
+- ✅ **Suporte AWS3**: Salve o arquivo assinado em um bucket AWS S3
 - ✅ **Compatível com ICP-Brasil**: Suporta certificados A1 (PFX/P12)
 - ✅ **Padrão PAdES**: Assinaturas compatíveis com Adobe Reader
 - ✅ **Zero Dependências Nativas**: Binários pré-compilados para todas as plataformas
@@ -22,6 +24,8 @@ npm install pdfsigner-rs
 yarn add pdfsigner-rs
 # ou
 pnpm add pdfsigner-rs
+# ou
+bun add pdfsigner-rs
 ```
 
 ## 🔧 Uso
@@ -34,7 +38,7 @@ const fs = require('fs')
 
 // Assinar PDF e retornar buffer
 // Nesse método usamos o caminho do documento ao invés de ser buffer.
-const signedBuffer = signPdfWithPath(
+const pdfSigned = signPdfWithPath(
   {
     pfxPath: path.join(__dirname, 'certificado.pfx'),
     pfxPassword: 'senha',
@@ -47,7 +51,7 @@ const signedBuffer = signPdfWithPath(
 )
 
 // Salvar o PDF assinado
-fs.writeFileSync('./documento_assinado.pdf', signedBuffer)
+fs.writeFileSync('./documento_assinado.pdf', pdfSigned.toBuffer())
 console.log('✓ PDF assinado com sucesso!')
 ```
 
@@ -62,7 +66,7 @@ const pdfBuffer = fs.readFileSync('./documento.pdf')
 
 // Assinar o buffer
 // Nesse método usamos o buffer do documento.
-const signedBuffer = signPdf(
+const pdfSigned = signPdf(
   {
     pfxPath: path.join(__dirname, 'certificado.pfx'),
     pfxPassword: 'senha',
@@ -75,7 +79,7 @@ const signedBuffer = signPdf(
 )
 
 // Salvar ou usar o buffer diretamente
-fs.writeFileSync('./documento_assinado.pdf', signedBuffer)
+fs.writeFileSync('./documento_assinado.pdf', pdfSigned.toBuffer())
 ```
 
 ### TypeScript
@@ -83,7 +87,7 @@ fs.writeFileSync('./documento_assinado.pdf', signedBuffer)
 ```typescript
 import { signPdf } from 'pdfsigner-rs'
 
-const signedBuffer: Buffer = signPdf(
+const pdfSigned: PdfSigned = signPdf(
   {
     pfxPath: path.join(__dirname, 'certificado.pfx'),
     pfxPassword: 'senha',
@@ -98,7 +102,7 @@ const signedBuffer: Buffer = signPdf(
 
 ## 📝 API
 
-### `signPdf(certificate: CertificateInfo, pdfData: Buffer, config?: Config | undefined | null): Buffer`
+### `signPdf(certificate: CertificateInfo, pdfData: Buffer, config?: Config | undefined | null): PdfSigned`
 
 Assina um PDF a partir de bytes e retorna o buffer assinado.
 
@@ -108,9 +112,9 @@ Assina um PDF a partir de bytes e retorna o buffer assinado.
 - `pdfData` (Buffer): Buffer contendo o PDF
 - `config` (Config | undefined | null, opcional): Configurações adicionais
 
-**Retorna:** `Buffer` - Buffer do PDF assinado
+**Retorna:** `PdfSigned` - Uma classe que representa o PDF assinado
 
-### `signPdfWithPath(certificate: CertificateInfo, pdfPath: string, config?: Config | undefined | null): Buffer`
+### `signPdfWithPath(certificate: CertificateInfo, pdfPath: string, config?: Config | undefined | null): PdfSigned`
 
 Assina um PDF a partir de um caminho de arquivo e retorna o buffer assinado.
 
@@ -120,7 +124,7 @@ Assina um PDF a partir de um caminho de arquivo e retorna o buffer assinado.
 - `pdfPath` (string): Caminho para o arquivo PDF
 - `config` (Config | undefined | null, opcional): Configurações adicionais
 
-**Retorna:** `Buffer` - Buffer do PDF assinado
+**Retorna:** `PdfSigned` - Uma classe que representa o PDF assinado
 
 ## 🏗️ Plataformas Suportadas
 
@@ -143,7 +147,7 @@ Assina um PDF a partir de um caminho de arquivo e retorna o buffer assinado.
 ### Requisitos
 
 - Rust (última versão estável)
-- Node.js 16+
+- Node.js 20+
 - Yarn 1.x ou superior
 
 ### Build Local

@@ -3,41 +3,41 @@
 authors = ["AaronKing <aaron.cmfor@gmail.com>"]
 edition = "2021"
 name = "pdfsigner_rs"
-version = "0.0.3"
+version = "0.0.4"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "3", features = ["async"] }
+napi = { version = "3", features = ["async"], default-features = false }
 napi-derive = "3.0.0"
-rsa = { version = "0.9", features = ["sha2"] }
-sha2 = "0.10"
-chrono = "0.4"
-base64 = "0.22"
+rsa = { version = "0.9", features = ["sha2"], default-features = false }
+sha2 = { version = "0.10", default-features = false }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+base64 = { version = "0.22", default-features = false }
 thiserror = "1.0"
-reqwest = { version = "0.12", features = ["blocking", "json", "rustls-tls", "multipart"], default-features = false }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-hex = "0.4"
-x509-parser = "0.16"
-der-parser = "9.0"
-pkcs8 = { version = "0.10", features = ["pem", "pkcs5", "encryption"] }
-p12 = "0.6"
-sha1 = "0.10"
-des = "0.7"
-block-modes = "0.9"
-rand = "0.8"
-signature = "2.2"
-cms = "0.2"
-const-oid = "0.9"
-der = { version = "0.7", features = ["alloc", "derive"] }
-x509-cert = "0.2"
-openssl-sys = { version = "0.9", features = ["vendored"] }
-openssl = { version = "0.10", features = ["vendored"] }
-tokio = { version = "1", features = ["fs"] }
-aws-sdk-s3 = "1.115.0"
-aws-config = "1.8.11"
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "multipart"], default-features = false }
+serde = { version = "1.0", features = ["derive"], default-features = false }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+x509-parser = { version = "0.16", default-features = false }
+der-parser = { version = "9.0", default-features = false }
+pkcs8 = { version = "0.10", features = ["pem", "pkcs5", "encryption"], default-features = false }
+p12 = { version = "0.6", default-features = false }
+sha1 = { version = "0.10", default-features = false }
+des = { version = "0.7", default-features = false }
+block-modes = { version = "0.9", default-features = false }
+rand = { version = "0.8", default-features = false, features = ["std", "std_rng"] }
+signature = { version = "2.2", default-features = false }
+cms = { version = "0.2", default-features = false }
+const-oid = { version = "0.9", default-features = false }
+der = { version = "0.7", features = ["alloc", "derive"], default-features = false }
+x509-cert = { version = "0.2", default-features = false }
+openssl-sys = { version = "0.9", features = ["vendored"], default-features = false }
+openssl = { version = "0.10", features = ["vendored"], default-features = false }
+tokio = { version = "1", features = ["fs", "rt-multi-thread"], default-features = false }
+aws-sdk-s3 = { version = "1.115.0", default-features = false, features = ["rt-tokio"] }
+aws-config = { version = "1.8.11", default-features = false, features = ["rt-tokio"] }
 
 
 [build-dependencies]
@@ -50,10 +50,13 @@ opt-level = 3               # Maximum optimization
 overflow-checks = false     # Disable overflow checks for speed
 panic = "abort"             # Smaller and faster panic handler
 strip = "symbols"           # Strip symbols to reduce binary size
+incremental = false         # Disable incremental compilation for smaller binaries
 
 [profile.release.package."*"]
 opt-level = 3               # Optimize all dependencies too
+codegen-units = 1           # Apply single codegen unit to dependencies too
 
 [profile.dev]
 opt-level = 0               # No optimization for faster compilation
 debug = true                # Include debug info
+incremental = true          # Enable incremental compilation for faster rebuilds
