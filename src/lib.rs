@@ -27,7 +27,8 @@ pub struct S3Info {
 
 #[napi(object)]
 pub struct CertificateInfo {
-  pub pfx_path: String,
+  pub pfx_path: Option<String>,
+  pub pfx_data: Option<Buffer>,
   pub pfx_password: String,
 }
 
@@ -126,8 +127,13 @@ pub fn sign_pdf(
   pdf_data: Buffer,
   config: Option<Config>,
 ) -> Result<PdfSigned> {
-  let signer = PdfSigner::from_pfx_file(&certificate.pfx_path, &certificate.pfx_password)
-    .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?;
+  let signer = if let Some(pfx_path) = certificate.pfx_path {
+    PdfSigner::from_pfx_file(&pfx_path, &certificate.pfx_password)
+      .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?
+  } else {
+    PdfSigner::from_pfx_bytes(&certificate.pfx_data.unwrap(), &certificate.pfx_password)
+      .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?
+  };
 
   let mut signature_config = SignatureConfig::default();
   if let Some(cfg) = config {
@@ -149,15 +155,20 @@ pub fn sign_pdf(
   Ok(PdfSigned::new(signed_buffer))
 }
 
-// Função para assinar PDF
+// Função para assinar PDF a partir de um caminho
 #[napi]
 pub fn sign_pdf_with_path(
   certificate: CertificateInfo,
   pdf_path: String,
   config: Option<Config>,
 ) -> Result<PdfSigned> {
-  let signer = PdfSigner::from_pfx_file(&certificate.pfx_path, &certificate.pfx_password)
-    .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?;
+  let signer = if let Some(pfx_path) = certificate.pfx_path {
+    PdfSigner::from_pfx_file(&pfx_path, &certificate.pfx_password)
+      .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?
+  } else {
+    PdfSigner::from_pfx_bytes(&certificate.pfx_data.unwrap(), &certificate.pfx_password)
+      .map_err(|e| Error::from_reason(format!("Erro ao carregar certificado: {}", e)))?
+  };
 
   let mut signature_config = SignatureConfig::default();
   if let Some(cfg) = config {

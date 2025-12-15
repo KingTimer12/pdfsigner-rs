@@ -9,7 +9,8 @@ export declare class PdfSigned {
 }
 
 export interface CertificateInfo {
-  pfxPath: string
+  pfxPath?: string
+  pfxData?: Buffer
   pfxPassword: string
 }
 

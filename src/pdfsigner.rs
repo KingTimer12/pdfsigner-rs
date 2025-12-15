@@ -24,7 +24,12 @@ impl PdfSigner {
   /// Cria um novo assinador a partir de um arquivo PFX/P12
   pub fn from_pfx_file<P: AsRef<Path>>(path: P, password: &str) -> Result<Self> {
     let pfx_data = fs::read(path)?;
-    Self::from_pfx_bytes_openssl(&pfx_data, password)
+    Self::from_pfx_bytes(&pfx_data, password)
+  }
+
+  /// Cria um novo assinador a partir de bytes PFX/P12
+  pub fn from_pfx_bytes(pfx_data: &[u8], password: &str) -> Result<Self> {
+    Self::from_pfx_bytes_openssl(pfx_data, password)
   }
 
   /// Extrai chave e certificados usando o openssl crate
